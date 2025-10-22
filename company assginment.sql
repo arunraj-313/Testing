@@ -475,14 +475,14 @@ create table software_temp
 
 CREATE TABLE SOFTWARE_AUDIT (NAME NVARCHAR(10), AUDITDATA NVARCHAR(50)) ;
 
-alter table SOFTWARE_AUDIT alter column auditdata nvarchar(100);
+alter table SOFTWARE_TEMP alter column name nvarchar(16);
 
 
 
 ---------------------------------------------- TRIGGER (DML COMMENTS) ---------------------------------------------------
 /* 
 
-Alter TRIGGER TR_Programmer_ForInsert  
+create or Alter TRIGGER TR_Programmer_ForInsert  
 ON SOFTWARE_TEMP 
 FOR INSERT 
 AS
@@ -518,19 +518,28 @@ select * from SOFTWARE_AUDIT
  AS 
  BEGIN
        INSERT INTO Programmer_log (action, name, actionTime)
-	   SELECT 'inserted', name, getdate()
+	   SELECT 'inserted', name, CONVERT(VARCHAR(8), (),108)'hh:mi:ss'
 	   from inserted;
  END;
 
 INSERT INTO demo.[dbo].[programmer] VALUES
-('vyshak', '1990-01-15', '2022-01-01', 'M', 'Pascal', 'C', 3500)
+('janen', '1990-05-15', '2024-05-01', 'M', 'Pascal', 'C', 3500)
 
 
 */
+alter table TEMP alter column [TIME] date(7)
+
+creATE TABLE TEMP(
+ID INT,
+[TIME] TIME);
+
+select cast(actionTime as date),name from Programmer_log
+select * from Programmer_log
+select * from software_temp
 
 ----------------------------------------------- DELETE -----------------------------------------------------
 --/*
-CREATE TRIGGER TR_Programmer_ForDelete 
+CREATE or alter TRIGGER TR_Programmer_ForDelete 
 ON SOFTWARE_TEMP 
 FOR Delete 
 AS
@@ -540,14 +549,14 @@ BEGIN
 
 
 	 INSERT INTO SOFTWARE_AUDIT
-	 VALUES (@NAME,'New Employee with Name = ' + @NAME + ' is Delete at ' + convert(NVARCHAR(100), GETDATE()))
+	 VALUES (@NAME,'New Employee with Name = ' + @NAME + ' is Delete at ' + convert(NVARCHAR(20), GETDATE()))
 End;
 
-delete from software_temp where sold = 2000
-*/
+delete from software_temp where sold = 15000
+
 ------------------------------------------------- TR_UPDATE ------------------------------------------------------
 
-CREATE TRIGGER TR_Software_Temp_ForUpdate
+CREATE or alter TRIGGER TR_Software_Temp_ForUpdate
 ON SOFTWARE_TEMP 
 FOR UPDATE
 AS 
@@ -588,7 +597,7 @@ END;
 insert into 
 
 
-
+--truncate table programmer_log
     select * from programmer_log
 	SELECT * FROM [programmer]
     SELECT * FROM [Software]
@@ -603,8 +612,9 @@ select char(67)
 
 
 declare @start int
-set @start = 65
+set @start = 90
 while (@start <91)
+
      begin
 		  print char(@start) 
 		  set @start = @start +1
@@ -646,6 +656,7 @@ while (@start <91)
 --('support@service.io'),
 --('admin@website.com');
 
+select * from substringCustomersemailid
 
 WITH CTE AS (
     SELECT 
@@ -700,6 +711,8 @@ BEGIN
 			 PRINT 'This UserName Already Exists';
 		END
 END;
+
+SELECT 1 FROM LOGIN_Pw_DATA WHERE User_Name = @User_Name
 
 EXEC Check_PW_Vaildate_SP 'GIRIDHARAN', 'SECURE@123' 
 
@@ -799,7 +812,7 @@ IF @inputHash = @storedHash
     PRINT 'Password is valid';
 ELSE
     PRINT 'Invalid password';
-------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------scalar function ----------------------------------------------------------------
 
  --CREATE FUNCTION FN_Demo_1 
  --Returns int
@@ -815,12 +828,210 @@ ELSE
 		declare @age int
 		set @age = DATEDIFF(year, @DOB, GETDATE()) -
 		    CASE
-				 WHEN	(MONTH(@DOB) > MONTH(GETDATE())) OR 
+				 WHEN	
+				 (MONTH(@DOB) > MONTH(GETDATE())) OR 
 						 (MONTH(@DOB) = MONTH(GETDATE()) AND DAY(@DOB) > DAY(GETDATE()))
-			     THEN 1
-				 ELSE 0
+			     THEN 1 ELSE 0
 		    END
-   RETURN @AGE
+		RETURN @AGE
  END;
 
- SELECT DBO.CalculateAge('20/09/2025') AS Age
+ SELECT DBO.CalculateAge('2024-01-21') AS Age   select DATEDIFF(year, '2025-10-22', GETDATE())
+
+						   2024-01-21 - 2025-10-22
+						   
+						   
+						--SELECT CONVERT(VARCHAR(8), GETDATE(),108)'hh:mi:ss' 
+
+
+select * from programmer
+
+delete p1 from programmer p1, programmer p2 where p1.doj = p2.doj and p1.name > p2.name -- this one is removing duilpcate records
+
+
+----------------------------------------------------------- Akshay ---------------------------------------------------------
+
+CREATE TABLE DEPARTMENT(
+DEP_ID INT IDENTITY(1,1),
+DEP_NAME NVARCHAR(20) 
+)
+ 
+CREATETABLEEMPLOYEE(
+EMP_ID INT IDENTITY(1,1),
+EMP_NAME NVARCHAR(20),
+DEP_ID INT,
+SALARY DECIMAL(10,2),
+DOJ DATE,
+STATUS NVARCHAR(10)DEFAULT'ACTIVE')
+ 
+CREATE TABLE PERFORMANCE
+(
+PERF_ID INT IDENTITY(1,1),
+EMP_ID INT,
+RATINGINT CHECK(RATING BETWEEN 1 AND 5),
+MONTH NVARCHAR(20),
+YEAR INT
+)
+ 
+ 
+INSERT INTO DEPARTMENT VALUES('IT'),('HR'),('FINANCE')
+SELECT * FROM DEPARTMENT
+ 
+ 
+INSERT INTO EMPLOYEE (EMP_NAME,DEP_ID,SALARY,DOJ) VALUES('JOHN',1,50000,'2022-01-10'),
+														('SARA',1,60000,'2021-03-12'),
+														('DAVID',2,40000,'2020-05-20'),
+														('EMMA',3,70000,'2023-07-15')
+ 
+select * from EMPLOYEE
+ 
+ 
+INSERT INTO PERFORMANCE(EMP_ID,RATING,MONTH,YEAR)VALUES(1,5,'SEP',2025),
+														(2,4,'SEP',2025),
+														(3,3,'SEP',2025),
+														(4,5,'SEP',2025)
+							
+ 
+select* from EMPLOYEE													
+SELECT* FROM PERFORMANCE
+SELECT* FROM DEPARTMENT
+ 
+ 
+--FIND AVG RATING PER DEP AND LIST ONLY DEP WITH AVG > 3.5
+SELECT D.DEP_NAME, AVG(P.RATING) AS AVG_RATING FROM EMPLOYEE E JOIN DEPARTMENT D ON E.DEP_ID = D.DEP_ID
+JOIN PERFORMANCE P ON E.EMP_ID = P.EMP_ID GROUP BY D.DEP_NAME HAVING AVG(P.RATING) >3.5 ORDER BY AVG_RATING DESC
+ 
+--GIVE 10% SALARY HIKE TO EMPWHOSE RATING >= 4
+UPDATE EMPLOYEE SET SALARY = (E.SALARY*1.10) FROM EMPLOYEE E  JOIN PERFORMANCE P ON E.EMP_ID = P.EMP_ID
+WHERE P.RATING >= 4
+ 
+ 
+--FUNCTION TO CAL YEARLY BONUS (10% OF SALARY)
+ 
+CREATE OR ALTER FUNCTION FN_EMP_BONUS(@SAL DECIMAL(10,2))
+RETURNS DECIMAL(10,2)
+AS
+BEGIN
+DECLARE @BONUS DECIMAL(10,2)
+SELECT @BONUS=(SALARY*0.10)FROM EMPLOYEE WHERE SALARY=@SAL
+RETURN @BONUS
+END
+ 
+SELECT EMP_NAME,DBO.FN_EMP_BONUS(SALARY)AS BONUS  FROM EMPLOYEE
+ 
+ 
+--USE TEMP TABLE TO STORE TOP 3 PERFROMANCE
+ 
+SELECT TOP3 E.EMP_NAME,P.RATING INTO ##TEMP_EMP FROM EMPLOYEE E
+JOIN PERFORMANCE P ONE.EMP_ID=P.EMP_ID ORDER BY RATING DESC
+SELECT * FROM ##TEMP_EMP
+ 
+ 
+--TRIGGER TO AUDIT SALARY
+ 
+CREATE TABLE AUDIT_SALARY(
+AUDIT_ID INTIDENTITY(1,1),
+EMP_ID INT,
+EMP_NAME NVARCHAR(20),
+ACTION_TAKEN NVARCHAR(20))
+ 
+ 
+CREATE OR ALTER TRIGGERTR_SALARY_UP
+ON EMPLOYEE
+AFTER UPDATE
+AS
+BEGIN
+ 
+INSERT INTO AUDIT_SALARY(EMP_ID,EMP_NAME,ACTION_TAKEN)
+SELECT EMP_ID,EMP_NAME,'UPDATE'FROM INSERTED
+END
+ 
+UPDATE EMPLOYEE SET SALARY = SALARY+1000 WHERE EMP_ID =2
+ 
+SELECT*FROM AUDIT_SALARY
+SELECT*FROM EMPLOYEE
+ 
+--ITERATE EMPLOYEES AND PRINT BONUS
+ 
+DECLARE  @NAME NVARCHAR(20),@SALDECIMAL(10,2),@BONUS INT
+ 
+DECLARE BONUS_CURSOR CURSOR FOR
+SELECT EMP_NAME ,SALARY FROM EMPLOYEE
+ 
+OPEN BONUS_CURSOR
+FETCH NEXT FROM BONUS_CURSOR INTO @NAME,@SAL
+ 
+WHILE(@@FETCH_STATUS=0)
+BEGIN
+SET @BONUS=DBO.FN_EMP_BONUS(@SAL)
+PRINT'EMPLOYEE NAME: '+@NAME +'| BONUS AMOUNT : '+CAST(@BONUSASNVARCHAR(20))
+ 
+FETCH NEXT FROM BONUS_CURSOR INTO @NAME,@SAL
+END
+ 
+CLOSE BONUS_CURSOR
+DEALLOCATE BONUS_CURSOR
+ 
+ 
+--ADD OR UPDATE EMP PERFORMANCE
+SELECT*FROM EMPLOYEE
+SELECT*FROM PERFORMANCE
+ 
+CREATE OR ALTER PROCADDORUPDATE_PERF_SP
+@ID INT,
+@RATING INT,
+@MONTH NVARCHAR(20),
+@YEAR INT
+AS
+BEGIN
+ 
+IF EXISTS(SELECT 1 FROM PERFORMANCE WHERE EMP_ID = @ID AND MONTH=@MONTH)
+UPDATE PERFORMANCE SET RATING=@RATING WHERE EMP_ID= @IDAND MONTH=@MONTH AND YEAR=@YEAR
+ELSE
+INSERT INTO PERFORMANCE(EMP_ID,RATING,MONTH,YEAR)
+VALUES(@ID,@RATING,@MONTH,@YEAR)
+END
+ 
+EXEC ADD OR UPDATE_PERF_SP @ID=6, @RATING=2,@MONTH='SEP',@YEAR=2025
+ 
+SELECT * FROM PERFORMANCE
+
+
+						   01 
+
+
+
+ SELECT DBO.CalculateAge(CAST('20-09-2024' AS DATE)) AS age;
+
+ ------------------------------------------------------------------------------------------------
+
+
+USE [shravan]
+GO
+/****** Object:  StoredProcedure [dbo].[CalculateTax_SP]    Script Date: 17-10-2025 17:29:56 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ 
+ALTER   PROCEDURE [dbo].[CalculateTax_SP]
+    @SaleID INT	
+AS
+BEGIN
+   DECLARE  @Amount DECIMAL(10,2),
+            @TaxRate DECIMAL(5,2),
+            @TaxAmount DECIMAL(10,2),
+            @TotalAmount DECIMAL(10,2)
+    -- Get the amount and tax rate for the sale
+    SELECT @Amount = Amount, @TaxRate = TaxRate
+    FROM Sales
+    WHERE SaleSID = @SaleID;
+    -- Calculate tax and total
+    SET @TaxAmount = ((@Amount * @TaxRate) / 100);
+    SET @TotalAmount = @Amount + @TaxAmount;
+    -- Update the table
+    UPDATE Sales
+    SET TaxAmount = @TaxAmount,
+        TotalAmount = @TotalAmount
+    WHERE SaleSID = @SaleID;
+END
