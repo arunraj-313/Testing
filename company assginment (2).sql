@@ -1,4 +1,4 @@
-﻿--CREATE TABLE demo.dbo.pragrammer (
+--CREATE TABLE demo.dbo.pragrammer (
 --	[name] nvarchar not null,
 --	dob DATE not null, 
 --	doj DATE NOT NULL,
@@ -668,6 +668,12 @@
 
 
 
+
+
+
+
+
+
 --	---------------------------------- 18/10/2025 ---------------------------------------------------  
 ----
 ----CREATE TABLE LOGIN_Pw_DATA
@@ -741,11 +747,6 @@
 
 --exec Check_PW_ValidOrNot_SP 'GIRIDHARAN', 'SECURbE@123'
 
-
-
-
-
-
 --selecT * from LOGIN_Pw_DATA
 
 
@@ -812,6 +813,12 @@
 --    PRINT 'Password is valid';
 --ELSE
 --    PRINT 'Invalid password';
+
+
+
+
+
+                                      ---------------- FUNCTIONS -----------------
 ----------------------------------------------------scalar function ----------------------------------------------------------------
 
 -- --CREATE FUNCTION FN_Demo_1 
@@ -877,14 +884,13 @@ SELECT Emp_ID, EMP_Name, DEP_ID, Salary, dbo.CalculateBonus(Salary) AS Bonus
 FROM Employee;
 
 
--------------------------------------------------------------------------------------------------------------
---Write a scalar function that takes a salary and returns the tax amount based on the following rules:
-
---If salary < 2,50,000 → tax = 0
---If salary between 2,50,000 and 5,00,000 → tax = 5%
---If salary between 5,00,000 and 10,00,000 → tax = 20%
---If salary > 10,00,000 → tax = 30%
--------------------------------------------------------------------------------------------------------------
+         -------------------------------------------- FUNCTION QUESTION -----------------------------------------------------------------
+				--Write a scalar function that takes a salary and returns the tax amount based on the following rules:
+				
+				--If salary < 2,50,000 → tax = 0
+				--If salary between 2,50,000 and 5,00,000 → tax = 5%
+				--If salary between 5,00,000 and 10,00,000 → tax = 20%
+				--If salary > 10,00,000 → tax = 30%
 
 --CREATE OR ALTER FUNCTION Fn_CalSalTaxAmount
 --(
@@ -912,7 +918,7 @@ FROM Employee;
 --SELECT dbo.Fn_CalSalTaxAmount(500000.00)
 
  
- -------------------------------------------------- CALCULATE AGE BASED ON THE DOB --------------------------------------------
+ ---------------------------------------------- CALCULATE AGE BASED ON THE DOB --------------------------------------------
 
  
 -- CREATE or alter FUNCTION Fn_calculate_Age ( @DOB date)
@@ -947,6 +953,21 @@ FROM Employee;
 --SELECT DATEADD(YEAR, 25,'2000/11/15') 
 
 --select abs(month(getdate()) - month('2000/10/15'))
+
+
+
+---------------------------------------------------- INDEX, NON ----------------------------------------
+CREATE INDEX INDEX1
+ON Aadhar_Details (Aadhar_Number)
+
+CREATE UNIQUE INDEX UI_INDEX2
+ON Aadhar_Details (Aadhar_Number)
+
+CREATE NONCLUSTERED INDEX NONC_INDEX3
+ON Aadhar_Details (Aadhar_Number)
+
+
+
 ------------------------------------------------------------- Akshay ---------------------------------------------------------
 
 --CREATE TABLE DEPARTMENT(
@@ -1005,10 +1026,10 @@ FROM Employee;
  
 ----USE TEMP TABLE TO STORE TOP 3 PERFROMANCE
  
---SELECT TOP3 E.EMP_NAME,P.RATING INTO ##TEMP_EMP FROM EMPLOYEE E
---JOIN PERFORMANCE P ONE.EMP_ID=P.EMP_ID ORDER BY RATING DESC
---SELECT * FROM ##TEMP_EMP
- 
+SELECT TOP 3 E.EMP_NAME,P.RATING INTO #TEMP_EMP FROM EMPLOYEE E
+JOIN PERFORMANCE P ON E.EMP_ID=P.EMP_ID ORDER BY RATING DESC
+SELECT * FROM #TEMP_EMP
+drop table #TEMP_EMP
  
 ----TRIGGER TO AUDIT SALARY
  
@@ -1034,7 +1055,7 @@ FROM Employee;
 --SELECT*FROM AUDIT_SALARY
 --SELECT*FROM EMPLOYEE
  
-----ITERATE EMPLOYEES AND PRINT BONUS
+----------------- ITERATE EMPLOYEES AND PRINT BONUS -------------------------------
  
 --DECLARE  @NAME NVARCHAR(20),@SALDECIMAL(10,2),@BONUS INT
  
@@ -1054,31 +1075,31 @@ FROM Employee;
  
 --CLOSE BONUS_CURSOR
 --DEALLOCATE BONUS_CURSOR
- 
+ ----------------------------------------------------------------------------------
  
 ----ADD OR UPDATE EMP PERFORMANCE
---SELECT*FROM EMPLOYEE
---SELECT*FROM PERFORMANCE
- 
---CREATE OR ALTER PROCADDORUPDATE_PERF_SP
---@ID INT,
---@RATING INT,
---@MONTH NVARCHAR(20),
---@YEAR INT
---AS
---BEGIN
- 
---IF EXISTS(SELECT 1 FROM PERFORMANCE WHERE EMP_ID = @ID AND MONTH=@MONTH)
---UPDATE PERFORMANCE SET RATING=@RATING WHERE EMP_ID= @IDAND MONTH=@MONTH AND YEAR=@YEAR
---ELSE
---INSERT INTO PERFORMANCE(EMP_ID,RATING,MONTH,YEAR)
---VALUES(@ID,@RATING,@MONTH,@YEAR)
---END
- 
---EXEC ADD OR UPDATE_PERF_SP @ID=6, @RATING=2,@MONTH='SEP',@YEAR=2025
- 
---SELECT * FROM PERFORMANCE
 
+SELECT*FROM EMPLOYEE
+SELECT*FROM PERFORMANCE
+ 
+      CREATE OR ALTER PROCADDORUPDATE_PERF_SP
+            @ID INT,
+            @RATING INT,
+            @MONTH NVARCHAR(20),
+            @YEAR INT
+      AS
+      BEGIN
+          IF EXISTS(SELECT 1 FROM PERFORMANCE WHERE EMP_ID = @ID AND MONTH=@MONTH)
+		  UPDATE PERFORMANCE SET RATING=@RATING WHERE EMP_ID= @IDAND MONTH=@MONTH AND YEAR=@YEAR
+       ELSE
+          INSERT INTO PERFORMANCE(EMP_ID,RATING,MONTH,YEAR)
+          VALUES(@ID,@RATING,@MONTH,@YEAR)
+       END
+       
+      EXEC ADDORUPDATE_PERF_SP @ID=6, @RATING=2, @MONTH='SEP', @YEAR=2025
+       
+      SELECT * FROM PERFORMANCE
+      
 
 --						   01 
 
@@ -1089,34 +1110,358 @@ FROM Employee;
 -- ------------------------------------------------------------------------------------------------
 
 
---USE [shravan]
---GO
---/****** Object:  StoredProcedure [dbo].[CalculateTax_SP]    Script Date: 17-10-2025 17:29:56 ******/
---SET ANSI_NULLS ON
---GO
---SET QUOTED_IDENTIFIER ON
---GO
+--------------------------------- sharvan
  
---ALTER   PROCEDURE [dbo].[CalculateTax_SP]
---    @SaleID INT	
---AS
---BEGIN
---   DECLARE  @Amount DECIMAL(10,2),
---            @TaxRate DECIMAL(5,2),
---            @TaxAmount DECIMAL(10,2),
---            @TotalAmount DE CIMAL(10,2)
---    -- Get the amount and tax rate for the sale
---    SELECT @Amount = Amount, @TaxRate = TaxRate
---    FROM Sales
---    WHERE SaleSID = @SaleID;
---    -- Calculate tax and total
---    SET @TaxAmount = ((@Amount * @TaxRate) / 100);
---    SET @TotalAmount = @Amount + @TaxAmount;
---    -- Update the table
---    UPDATE Sales
---    SET TaxAmount = @TaxAmount,
---        TotalAmount = @TotalAmount
---    WHERE SaleSID = @SaleID;
---END
+Create or ALTER   PROCEDURE [dbo].[CalculateTax_SP]
+    @SaleID INT	
+AS
+BEGIN
+   DECLARE  @Amount DECIMAL(10,2),
+            @TaxRate DECIMAL(5,2),
+            @TaxAmount DECIMAL(10,2),
+            @TotalAmount DECIMAL(10,2)
+
+    -- Get the amount and tax rate for the sale
+    SELECT @Amount = Amount, @TaxRate = TaxRate
+    FROM Sales
+    WHERE SaleSID = @SaleID;
+
+    -- Calculate tax and total
+    SET @TaxAmount = ((@Amount * @TaxRate) / 100);
+    SET @TotalAmount = @Amount + @TaxAmount;
+    -- Update the table
+
+    UPDATE Sales
+    SET TaxAmount = @TaxAmount,
+        TotalAmount = @TotalAmount
+    WHERE SaleSID = @SaleID;
+END
+
+ 
+
+      SELECT * FROM EMPLOYEE
+      SELECT * FROM PERFORMANCE
+	  select * from DEPARTMENT
 
 
+---------------------------------------------------------------------------------------------------
+	  if exists (select * from employee where year(doj) between 2025 and 2026)
+		 print 'this records in the table'
+	  else
+	     print 'this record not in the table'
+
+
+------------DISPLAY THE HOW MANY EMP JOINED IN BETWEEN 2020 AND 2021 THOSE EMP DETAILS STORE IN THE TEMP TABLE-------------
+
+ --   ALTER TABLE #temp ALTER COLUMN ViewedTime dateTIME;
+
+
+	--CREATE TABLE #TEMP
+	--(
+	--EMP_ID INT IDENTITY(1,1),
+	--EMP_NAME NVARCHAR(40),
+	--DEP_ID INT,
+	--SALARY DECIMAL(10,2),
+	--DOJ DATE,
+	--STATUS NVARCHAR(20)
+	--)
+
+	--DECLARE @StartDate1 int;
+	--DECLARE @EndDate2 INT;
+	--SET  @StartDate1 = 2020
+	--set  @EndDate2 = 2021
+	
+	--IF EXISTS(SELECT * FROM EMPLOYEE WHERE YEAR(DOJ) BETWEEN @StartDate1 AND @EndDate2)
+	--   BEGIN
+	--	  INSERT INTO #TEMP(EMP_NAME,DEP_ID,SALARY,DOJ,STATUS,ViewedTime)
+	--	  SELECT EMP_NAME,DEP_ID,SALARY,DOJ,STATUS,CURRENT_TIMESTAMP FROM EMPLOYEE WHERE YEAR(DOJ) BETWEEN @StartDate1 AND @EndDate2
+	--   END
+	--ELSE
+	--   BEGIN
+	--      PRINT ' No Record Found'
+	--   END
+
+	   ----------------------------------- ITS REMOVE TEMP TABLE WHEN REACH 15 RECORDS AUTOMATICALLY DELETE OLD RECORDS----------------------------------
+
+	   -- Step 1: Create the temp table (if not exists)
+
+	   
+
+  IF OBJECT_ID('tempdb..#TEMP') IS NOT NULL
+    DROP TABLE #TEMP;
+
+CREATE TABLE #TEMP
+(
+    ID INT IDENTITY(1,1),
+    EMP_NAME NVARCHAR(50),
+    DEP_ID INT,
+    SALARY DECIMAL(10,2),
+    DOJ DATE,
+    STATUS NVARCHAR(20),
+    ViewedTime DATETIME
+);
+
+-- Step 2: Declare variables
+DECLARE @StartDate1 INT = 2020;
+DECLARE @EndDate2 INT = 2021;
+
+-- Step 3: Insert only if matching records exist
+IF EXISTS (SELECT * FROM EMPLOYEE WHERE YEAR(DOJ) BETWEEN @StartDate1 AND @EndDate2)
+BEGIN
+    INSERT INTO #TEMP (EMP_NAME, DEP_ID, SALARY, DOJ, STATUS, ViewedTime)
+    SELECT EMP_NAME, DEP_ID, SALARY, DOJ, STATUS, CURRENT_TIMESTAMP
+    FROM EMPLOYEE
+    WHERE YEAR(DOJ) BETWEEN @StartDate1 AND @EndDate2;
+
+    -- Step 4: Delete oldest records only if count exceeds 15
+    ;WITH CTE AS (
+        SELECT ID, ROW_NUMBER() OVER (ORDER BY ID DESC) AS RowNum
+        FROM #TEMP
+    )
+    DELETE FROM #TEMP
+    WHERE ID IN (
+        SELECT ID FROM CTE WHERE RowNum > 15
+    );
+END
+ELSE
+BEGIN
+    PRINT 'No Record Found';
+END;
+
+-- Step 5: View the remaining records
+SELECT * FROM #TEMP ORDER BY ID DESC;
+
+
+	                         select * from #TEMP
+	                         drop table #temp
+
+                              SELECT*FROM EMPLOYEE
+                              SELECT*FROM PERFORMANCE
+	                          select * from DEPARTMENT
+
+
+
+-- 1. PAN Details Table
+CREATE TABLE PAN_Details (
+    PAN_Number VARCHAR(10) PRIMARY KEY,
+    User_Name VARCHAR(100) NOT NULL,
+    Date_Of_Issue DATE,
+    City_Address VARCHAR(50),
+	Aadhar_number int
+);
+
+-- 2. Aadhar Details Table
+CREATE TABLE Aadhar_Details (
+    Aadhar_Number VARCHAR(12) PRIMARY KEY,
+    User_Name VARCHAR(100) NOT NULL,
+    DOB DATE,
+    Gender CHAR(1),
+    Mobile_Number VARCHAR(10)
+);
+
+-- 3. Bank Details Table (Includes multiple bank accounts and a Foreign Key to PAN)
+CREATE TABLE Bank_Details (
+    Bank_ID INT IDENTITY(1,1) PRIMARY KEY, -- Auto-incrementing ID for each account record
+    User_Name VARCHAR(100) NOT NULL,
+    Bank1_Name VARCHAR(50) NOT NULL,
+    Bank1_Account_No VARCHAR(20) NOT NULL,
+    Bank2_Name VARCHAR(50) NULL, -- Optional second bank
+    Bank2_Account_No VARCHAR(20) NULL, -- Optional second account number
+    IFSC_Code VARCHAR(11),
+    Link_Aadhar_Number VARCHAR(12) NOT NULL, -- Foreign Key to link back to PAN details
+
+    -- Define Foreign Key Constraint (OPTIONAL but RECOMMENDED for integrity)
+    FOREIGN KEY (Link_Aadhar_Number) REFERENCES AADHAR_DETAILS(AADHAR_Number)
+);
+
+    
+
+-- 🚀 MS SQL INSERT Statements for Bank_Details Table
+
+INSERT INTO Bank_Details 
+    (User_Name, Bank1_Name, Bank1_Account_No, Bank2_Name, Bank2_Account_No, IFSC_Code, Link_Aadhar_Number)
+VALUES
+('Aarav Sharma', 'HDFC Bank', '50100100100101', 'ICICI Bank', '60200200200201', 'HDFC0000001', 'ABCDE1001A'),
+('Priya Singh', 'Axis Bank', '91900190019002', 'SBI', '10000100010002', 'UTIB0000002', 'FGHJI1002B'),
+('Rohan Gupta', 'ICICI Bank', '60200200200303', 'HDFC Bank', '50100100100303', 'ICIC0000003', 'KLMNO1003C'),
+('Sneha Reddy', 'SBI', '10000100010004', 'Standard C.', '70300300300404', 'SBIN0000004', 'PQRST1004D'),
+('Vishal Patel', 'PNB', '20000200020005', NULL, NULL, 'PUNB0000005', 'UVWXY1005E'),
+('Neha Verma', 'HDFC Bank', '50100100100606', 'Yes Bank', '80400400400606', 'HDFC0000006', 'ZAXBY1006F'),
+('Rahul Jain', 'ICICI Bank', '60200200200707', NULL, NULL, 'ICIC0000007', 'CEDFV1007G'),
+('Anjali Menon', 'Axis Bank', '91900190019008', 'Kotak Bank', '30500500500808', 'UTIB0000008', 'GHIJK1008H'),
+('Vivek Kumar', 'SBI', '10000100010009', 'HDFC Bank', '50100100100909', 'SBIN0000009', 'MNOPQ1009I'),
+('Tanya Aggarwal', 'Kotak Bank', '30500500501010', NULL, NULL, 'KKBK0000010', 'RSTUV1010J'),
+('Alok Yadav', 'Yes Bank', '80400400401111', 'Axis Bank', '91900190019111', 'YESB0000011', 'WXAYZ1011K'),
+('Divya Mishra', 'PNB', '20000200020012', NULL, NULL, 'PUNB0000012', 'ZBCDA1012L'),
+('Kunal Das', 'HDFC Bank', '50100100101313', 'SBI', '10000100010131', 'HDFC0000013', 'EFGHJ1013M'),
+('Ritu Nanda', 'ICICI Bank', '60200200201414', NULL, NULL, 'ICIC0000014', 'IJKLM1014N'),
+('Sarthak Bose', 'SBI', '10000100010015', 'Axis Bank', '91900190019015', 'SBIN0000015', 'NOPQR1015O'),
+('Esha Chawla', 'Standard C.', '70300300301616', 'HDFC Bank', '50100100101616', 'SCBL0000016', 'STUVX1016P'),
+('Harish Dutt', 'Axis Bank', '91900190019017', 'PNB', '20000200020017', 'UTIB0000017', 'YZABC1017Q'),
+('Leena Iyer', 'Kotak Bank', '30500500501818', NULL, NULL, 'KKBK0000018', 'DEFGH1018R'),
+('Mohit Garg', 'Yes Bank', '80400400401919', 'ICICI Bank', '60200200201919', 'YESB0000019', 'IJKMN1019S'),
+('Kavita Rao', 'PNB', '20000200020020', NULL, NULL, 'PUNB0000020', 'OPQRS1020T'),
+('Akash Nair', 'HDFC Bank', '50100100102121', 'SBI', '10000100010212', 'HDFC0000021', 'TUVWX1021U'),
+('Pooja Shah', 'ICICI Bank', '60200200202222', NULL, NULL, 'ICIC0000022', 'YZADE1022V'),
+('Sameer Lalla', 'Axis Bank', '91900190019023', 'HDFC Bank', '50100100102323', 'UTIB0000023', 'FGHJI1023W'),
+('Geeta Pande', 'SBI', '10000100010024', 'Kotak Bank', '30500500502424', 'SBIN0000024', 'KLMNO1024X'),
+('Rohit Saxena', 'Standard C.', '70300300302525', 'PNB', '20000200020025', 'SCBL0000025', 'PQRST1025Y'),
+('Shreya Dubey', 'Yes Bank', '80400400402626', NULL, NULL, 'YESB0000026', 'UVWXY1026Z'),
+('Karan Tandon', 'PNB', '20000200020027', 'HDFC Bank', '50100100102727', 'PUNB0000027', 'ZAXBY1027A'),
+('Meera Joshi', 'HDFC Bank', '50100100102828', 'ICICI Bank', '60200200202828', 'HDFC0000028', 'CEDFV1028B'),
+('Nitin Bhasin', 'SBI', '10000100010029', 'Axis Bank', '91900190019029', 'SBIN0000029', 'GHIJK1029C'),
+('Deepa Singh', 'ICICI Bank', '60200200203030', NULL, NULL, 'ICIC0000030', 'MNOPQ1030D');
+
+-- 🚀 MS SQL INSERT Statements for Aadhar_Details Table
+
+INSERT INTO Aadhar_Details 
+    (Aadhar_Number, User_Name, DOB, Gender, Mobile_Number)
+VALUES
+('123456780001', 'Aarav Sharma', '1990-03-01', 'M', '9876543210'),
+('123456780002', 'Priya Singh', '1992-06-17', 'F', '9876543211'),
+('123456780003', 'Rohan Gupta', '1988-11-25', 'M', '9876543212'),
+('123456780004', 'Sneha Reddy', '1995-09-08', 'F', '9876543213'),
+('123456780005', 'Vishal Patel', '1989-02-14', 'M', '9876543214'),
+('123456780006', 'Neha Verma', '1998-12-05', 'F', '9876543215'),
+('123456780007', 'Rahul Jain', '1991-05-30', 'M', '9876543216'),
+('123456780008', 'Anjali Menon', '1993-08-11', 'F', '9876543217'),
+('123456780009', 'Vivek Kumar', '1996-01-09', 'M', '9876543218'),
+('123456780010', 'Tanya Aggarwal', '1994-10-21', 'F', '9876543219'),
+('123456780011', 'Alok Yadav', '1987-04-02', 'M', '9876543220'),
+('123456780012', 'Divya Mishra', '1999-07-28', 'F', '9876543221'),
+('123456780013', 'Kunal Das', '1997-02-15', 'M', '9876543222'),
+('123456780014', 'Ritu Nanda', '1990-12-07', 'F', '9876543223'),
+('123456780015', 'Sarthak Bose', '1992-03-23', 'M', '9876543224'),
+('123456780016', 'Esha Chawla', '1995-06-19', 'F', '9876543225'),
+('123456780017', 'Harish Dutt', '1989-08-04', 'M', '9876543226'),
+('123456780018', 'Leena Iyer', '1998-05-13', 'F', '9876543227'),
+('123456780019', 'Mohit Garg', '1991-11-09', 'M', '9876543228'),
+('123456780020', 'Kavita Rao', '1993-04-20', 'F', '9876543229'),
+('123456780021', 'Akash Nair', '1996-07-26', 'M', '9876543230'),
+('123456780022', 'Pooja Shah', '1990-10-06', 'F', '9876543231'),
+('123456780023', 'Sameer Lalla', '1988-01-29', 'M', '9876543232'),
+('123456780024', 'Geeta Pande', '1995-04-12', 'F', '9876543233'),
+('123456780025', 'Rohit Saxena', '1989-09-03', 'M', '9876543234'),
+('123456780026', 'Shreya Dubey', '1998-07-15', 'F', '9876543235'),
+('123456780027', 'Karan Tandon', '1991-05-22', 'M', '9876543236'),
+('123456780028', 'Meera Joshi', '1993-08-18', 'F', '9876543237'),
+('123456780029', 'Nitin Bhasin', '1996-01-27', 'M', '9876543238'),
+('123456780030', 'Deepa Singh', '1994-11-04', 'F', '9876543239');
+
+
+-- 🚀 MS SQL INSERT Statements for PAN_Details Table
+
+INSERT INTO PAN_Details 
+    (PAN_Number, User_Name, Date_Of_Issue, City_Address,Aadhar_Number)
+VALUES
+('ABCDE1001A', 'Aarav Sharma', '2010-05-15', 'Mumbai'),
+('FGHJI1002B', 'Priya Singh', '2012-08-22', 'Delhi'),
+('KLMNO1003C', 'Rohan Gupta', '2008-02-10', 'Bengaluru'),
+('PQRST1004D', 'Sneha Reddy', '2015-11-28', 'Hyderabad'),
+('UVWXY1005E', 'Vishal Patel', '2009-07-01', 'Ahmedabad'),
+('ZAXBY1006F', 'Neha Verma', '2018-04-03', 'Pune'),
+('CEDFV1007G', 'Rahul Jain', '2011-09-19', 'Chennai'),
+('GHIJK1008H', 'Anjali Menon', '2013-01-25', 'Kochi'),
+('MNOPQ1009I', 'Vivek Kumar', '2016-06-14', 'Jaipur'),
+('RSTUV1010J', 'Tanya Aggarwal', '2014-03-05', 'Kolkata'),
+('WXAYZ1011K', 'Alok Yadav', '2007-12-12', 'Lucknow'),
+('ZBCDA1012L', 'Divya Mishra', '2019-10-10', 'Bhopal'),
+('EFGHJ1013M', 'Kunal Das', '2017-01-20', 'Patna'),
+('IJKLM1014N', 'Ritu Nanda', '2010-04-04', 'Chandigarh'),
+('NOPQR1015O', 'Sarthak Bose', '2012-09-09', 'Noida'),
+('STUVX1016P', 'Esha Chawla', '2015-05-18', 'Gurgaon'),
+('YZABC1017Q', 'Harish Dutt', '2009-06-27', 'Surat'),
+('DEFGH1018R', 'Leena Iyer', '2018-08-01', 'Vadodara'),
+('IJKMN1019S', 'Mohit Garg', '2011-02-11', 'Nagpur'),
+('OPQRS1020T', 'Kavita Rao', '2013-11-07', 'Indore'),
+('TUVWX1021U', 'Akash Nair', '2016-12-30', 'Coimbatore'),
+('YZADE1022V', 'Pooja Shah', '2010-03-17', 'Visakhapatnam'),
+('FGHJI1023W', 'Sameer Lalla', '2008-10-08', 'Madurai'),
+('KLMNO1024X', 'Geeta Pande', '2015-07-29', 'Ranchi'),
+('PQRST1025Y', 'Rohit Saxena', '2009-01-05', 'Kanpur'),
+('UVWXY1026Z', 'Shreya Dubey', '2018-03-24', 'Ludhiana'),
+('ZAXBY1027A', 'Karan Tandon', '2011-07-16', 'Nashik'),
+('CEDFV1028B', 'Meera Joshi', '2013-05-21', 'Thrissur'),
+('GHIJK1029C', 'Nitin Bhasin', '2016-09-02', 'Gwalior'),
+('MNOPQ1030D', 'Deepa Singh', '2014-01-14', 'Rajkot');
+
+
+
+select * from Aadhar_Details
+select * from Bank_Details
+select * from PAN_Details
+
+
+SELECT Bank_ID into Aadhar_details from Bank_Details where 1 = 0;
+
+alter table Aadhar_details add Bank_ID nvarchar(12) null
+
+
+insert into Aadhar_details (Aadhar_Number,User_Name,DOB,Gender,Mobile_Number)
+select Aadhar_Number,User_Name,DOB,Gender,Mobile_Number 
+from Aadhar_details1
+
+
+UPDATE a
+SET a.Bank_ID = b.bank_id
+from Bank_Details B JOIN Aadhar_details A ON A.USER_NAME = B.User_Name
+
+alter table Aadhar_details add foreign key references 
+
+
+alter table Aadhar_details add column Aadhar_number
+
+--------------------------------------------------------------- #Temp ------------------------------------------------------------------------
+
+Select top 3 e.EMP_ID, e.EMP_NAME, e.DEP_ID, p.RATING into #temp1 
+from EMPLOYEE e 
+join PERFORMANCE p 
+on e.EMP_ID = p.EMP_ID 
+order by p.RATING desc
+      
+	  SELECT * FROM EMPLOYEE
+      SELECT * FROM PERFORMANCE
+	  select * from DEPARTMENT
+
+--Create a temp table that stores the top 2 employees based on performance rating.
+select top 2 e.EMP_ID,
+e.EMP_NAME,
+DEP_ID,
+SALARY,
+STATUS into #TopPerformers from EMPLOYEE e join PERFORMANCE p on e.EMP_ID = p.EMP_ID order by RATING desc
+
+select * from #TopPerformers
+--Store the average salary per department in a temp table.
+select dep_name, 
+avg(SALARY) AS AVG_SALARY 
+into #AvgSalDept 
+from DEPARTMENT d join EMPLOYEE e 
+on d.DEP_ID = e.DEP_ID 
+group by DEP_NAME 
+
+SELECT * FROM #AvgSalDept
+--Create a temp table with employees who joined in the last 12 months.
+SELECT * INTO #EMPLOYEE FROM EMPLOYEE WHERE DOJ >= DATEADD(MONTH, -50, GETDATE())
+
+--Create a temp table that joins EMPLOYEE and DEPARTMENT to show employee name, department name, and salary.
+SELECT E.EMP_NAME,D.DEP_NAME,SALARY INTO #EmpWithDept FROM EMPLOYEE E JOIN DEPARTMENT D ON E.DEP_ID = D.DEP_ID
+
+select * from #EmpWithDept
+--Create a temp table with employees earning more than ₹60,000.
+select * into #temp from EMPLOYEE where salary > 60000
+
+select * from #temp
+
+select distinct(d.DEP_NAME), RATING from PERFORMANCE p join EMPLOYEE e on e.EMP_ID = p.EMP_ID join DEPARTMENT d on e.DEP_ID = d.DEP_ID group by DEP_NAME, RATING order by RATING desc
+
+
+--Top Performer per Department
+--Create a temp table that stores the highest-rated employee from each department.
+
+
+--Inactive Employees
+--Create a temp table with employees whose STATUS is not 'ACTIVE'.
+
+
+--Employees Without Performance Records
+--Store employees who don’t have any entry in the PERFORMANCE table.
