@@ -353,40 +353,40 @@
 
 ------------------------------------ SP_OUTPUT_parameter --------------------------------------------
 
---CREATE or ALTER PROC SP_GetProgrammerDetailsByLanguage
---	@Lang nvarchar(20),
---	@programmerName nvarchar(20) output,
---	@programmerName1 nvarchar(20) output
---	with en
---AS
---	DECLARE @Language nvarchar(20) 
---	set @language = @Lang
+CREATE or ALTER PROC SP_GetProgrammerDetailsByLanguage
+	@Lang nvarchar(20),
+	@programmerName nvarchar(20) output,
+	@programmerName1 nvarchar(20) output
+	with en
+AS
+	DECLARE @Language nvarchar(20) 
+	set @language = @Lang
 
---BEGIN
---	  SELECT @programmerName = NAME, @programmerName1 = salary FROM programmer WHERE prof1 = @Language OR prof2 = @Language
---END;
-
-
-
---	DECLARE 
---	@name nvarchar(20), 
---	@salary decimal(19,3);
---	exec [dbo].[SP_GetProgrammerDetailsByLanguage] @lang = 'c',
---	@programmerName = @name output,
---	@programmerName1 = @salary output;
---	print @name;
---	print @salary
-
---	DECLARE @name nvarchar(20), 
---			@salary decimal(19,3);
---	exec SP_GetProgrammerDetailsByLanguage @lang ='c',
---	@programmerName = @name output,
---	@programmerName1 = @salary output
---	select @name as programmerName, @salary as salary;
+BEGIN
+	  SELECT @programmerName = NAME, @programmerName1 = salary FROM programmer WHERE prof1 = @Language OR prof2 = @Language
+END;
 
 
---	sp_helptext SP_GetProgrammerDetailsByLanguage
---	sp_help SP_GetProgrammerDetailsByLanguage -- about 
+
+	DECLARE 
+	@name nvarchar(20), 
+	@salary decimal(19,3);
+	exec [dbo].[SP_GetProgrammerDetailsByLanguage] @lang = 'c',
+	@programmerName = @name output,
+	@programmerName1 = @salary output;
+	print @name;
+	print @salary
+
+	DECLARE @name nvarchar(20), 
+			@salary decimal(19,3);
+	exec SP_GetProgrammerDetailsByLanguage @lang ='c',
+	@programmerName = @name output,
+	@programmerName1 = @salary output
+	select @name as programmerName, @salary as salary;
+
+
+	sp_helptext SP_GetProgrammerDetailsByLanguage
+	sp_help SP_GetProgrammerDetailsByLanguage -- about 
 --	--------------------------------------------------------------------------------------
 	
 --CREATE or ALTER PROC GetProgrammerDetailsByLanguage_SP
@@ -456,8 +456,175 @@
 
 --	-----------------------------------
 
+Create or ALTER   PROCEDURE [dbo].[CalculateTax_SP]
+    @SaleID INT	
+AS
+BEGIN
+   DECLARE  @Amount DECIMAL(10,2),
+            @TaxRate DECIMAL(5,2),
+            @TaxAmount DECIMAL(10,2),
+            @TotalAmount DECIMAL(10,2)
 
----------------------------------------------------------- TRIGGER ------------------------------------------------------------------
+    -- Get the amount and tax rate for the sale
+    SELECT @Amount = Amount, @TaxRate = TaxRate
+    FROM Sales
+    WHERE SaleSID = @SaleID;
+
+    -- Calculate tax and total
+    SET @TaxAmount = ((@Amount * @TaxRate) / 100);
+    SET @TotalAmount = @Amount + @TaxAmount;
+    -- Update the table
+
+    UPDATE Sales
+    SET TaxAmount = @TaxAmount,
+        TotalAmount = @TotalAmount
+    WHERE SaleSID = @SaleID;
+END
+
+--Create a stored procedure that takes a department name as input and returns all employees in that department.
+create OR ALTER proc GetEmpDetailsByDept_sp
+ @dept_name nvarchar(20)
+AS
+BEGIN
+	SELECT 
+		e.EMP_ID,
+        e.EMP_NAME,
+        e.SALARY,
+        e.DOJ,
+        e.STATUS,
+        d.DEP_NAME
+ FROM EMPLOYEE E JOIN DEPARTMENT D ON  E.DEP_ID = D.DEP_ID WHERE DEP_NAME =  @dept_name
+END;
+
+EXEC GetEmpDetailsByDept_sp 'IT'
+---------------------------------------------------------------------------------------------------------------------------------
+
+--Write a stored procedure to insert a new performance record for an employee. Input parameters: EMP_ID, RATING, MONTH, YEAR.
+create OR ALTER proc Insert_Newperformerrecord_sp
+ @Emp_ID int,
+ @RATING int,
+ @MONTH nvarchar(3),
+ @YEAR int
+AS
+BEGIN 
+    
+  if not exists (select 1 from EMPLOYEE where emp_id = @Emp_ID)
+         begin
+			print 'error: employee not found';
+			return;
+		 end
+
+  if @RATING not between 1 and 5
+      begin
+			print 'error: rating must be between 1 and 5.'
+			return;
+	  end
+
+  if exists(select 1 from performance where emp_id = @Emp_ID and [month] = @month and [year] = @year)
+      begin 
+	       print 'performace records already exists';
+		   return;
+	  end
+  
+  insert into performance (emp_id,rating,month,year)
+                  values  ( @Emp_ID,@RATING,@MONTH,@YEAR);
+
+	  print 'success: performance records inserted successfully'
+end;
+
+
+--select 1 from EMPLOYEE where emp_id = 8
+
+--declare @emp_ID int set @Emp_ID = 
+
+--if not exists(select 1 from EMPLOYEE where emp_id = @Emp_ID)
+--	print 'yes'
+--else 
+--	print 'no'
+     
+
+exec Insert_Newperformerrecord_sp @Emp_ID = 5 ,@RATING = 5, @MONTH = 'sep' ,@YEAR =2025
+--________________________________________________________________________________________
+  
+
+--Create a stored procedure that updates the status of an employee. Input: EMP_ID, New_Status.
+
+  Create proc UP_NewStatusByEmpID_Sp @emp_id int, @new_status nvarchar(10)
+  AS
+  BEGIN
+	   UPDATE EMPLOYEE
+	   SET STATUS = @new_status
+	   WHERE EMP_ID = @emp_id
+  END;
+
+
+ EXEC UP_NewStatusByEmpID_Sp @emp_id = 4, @new_status = 'INACTIVE'
+--________________________________________________________________________________________
+
+--Write a stored procedure that takes a number N and returns the top N employees based on performance rating.
+
+ Create or alter proc GetEmpByTopN_Rating_Sp @TopN int
+    AS    
+	BEGIN
+	    SET NOCOUNT ON;
+	    SELECT TOP(@TopN) EMP_NAME, DEP_NAME, RATING, month, year FROM EMPLOYEE E JOIN PERFORMANCE P ON E.EMP_ID = P.EMP_ID JOIN DEPARTMENT D ON E.DEP_ID = D.DEP_ID ORDER BY RATING DESC, Doj desc
+    END
+
+EXEC GetEmpByTopN_Rating_Sp 1 
+
+	    SELECT TOP(1) EMP_NAME, DEP_NAME, RATING, doj, month, year FROM EMPLOYEE E JOIN PERFORMANCE P ON E.EMP_ID = P.EMP_ID JOIN DEPARTMENT D ON E.DEP_ID = D.DEP_ID ORDER BY RATING DESC, doj desc  
+
+ 
+
+  
+---------------------------------------------------------------------------------------------------------
+create OR ALTER proc GetEmpDetailsByEmpid_sp
+@empname nvarchar(40) out,
+@salary decimal(10,2) out 
+AS
+BEGIN 
+     select @empname = EMP_NAME, @salary = SALARY from EMPLOYEE where SALARY >= 66000
+end;
+
+declare @Oempname nvarchar(40), @Osalary decimal(10,2)
+exec GetEmpDetailsByEmpid_sp 
+@empname = @Oempname out,
+@salary = @Osalary out
+select @Oempname,@Osalary
+
+
+SELECT * FROM EMPLOYEE
+SELECT * FROM PERFORMANCE
+SELECT * FROM DEPARTMENT
+
+INSERT INTO EMPLOYEE (EMP_NAME,DEP_ID,SALARY,DOJ) VALUES ('Wick',3,50000,'2025-01-10')
+
+
+ /*THIS IS RESET THE SEED */  --TABLE_NAME       START SEED NO.
+               DBCC CHECKIDENT ('PERFORMANCE', RESEED,  4) -- SEED IS SUDDENLY BECIMES CHANGE IT MEANS YOUR IDENTITY SEED WAS CHANGED ---  THIS IS MANUALLY RESET THE IDENTITY VALUE 
+
+DELETE FROM PERFORMANCE WHERE EMP_ID IN(5)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+------------------------------------------------------ TRIGGER ------------------------------------------------------------------
 --use demo;
 
 --create table software_temp 
@@ -502,7 +669,7 @@
 
 
 
------------------------------------------- Trigger ---------------------------------------
+----------------------------------------------------- Trigger --------------------------------------------------------------
  
 -- CREATE TABLE Programmer_log (
 -- logID int identity(1,1),
@@ -593,15 +760,149 @@
 
 --END;
 
+--truncate table programmer_log
+--select * from programmer_log
+--SELECT * FROM [programmer]
+--SELECT * FROM [Software]
+--SELECT * FROM [Studies]
 
---insert into 
+                                      ---------------- FUNCTIONS -----------------
+----------------------------------------------------scalar function ----------------------------------------------------------------
+
+-- --CREATE FUNCTION FN_Demo_1 
+-- --Returns int
+-- --AS
+-- --BEGIN
+
+-- --END;
+
+-- CREATE or alter FUNCTION CalculateAge(@DOB Date) 
+-- Returns int
+-- AS
+-- BEGIN
+--		declare @age int
+--		set @age = DATEDIFF(year, @DOB, GETDATE()) -
+--		    CASE
+--				 WHEN	
+--				 (MONTH(@DOB) > MONTH(GETDATE())) OR 
+--						 (MONTH(@DOB) = MONTH(GETDATE()) AND DAY(@DOB) > DAY(GETDATE()))
+--			     THEN 1 ELSE 0
+--		    END
+--		RETURN @AGE
+-- END;
+
+-- SELECT DBO.CalculateAge('2024-01-21') AS Age   select DATEDIFF(year, '2025-10-22', GETDATE())
+
+--						   2024-01-21 - 2025-10-22
+						   
+						   
+--						--SELECT CONVERT(VARCHAR(8), GETDATE(),108)'hh:mi:ss' 
 
 
-----truncate table programmer_log
---    select * from programmer_log
---	SELECT * FROM [programmer]
---    SELECT * FROM [Software]
---    SELECT * FROM [Studies]
+--select * from programmer
+
+--delete p1 from programmer p1, programmer p2 where p1.doj = p2.doj and p1.name > p2.name -- this one is removing duilpcate records
+
+
+---------------------------------FUNCTION TO CAL YEARLY BONUS (10% OF SALARY)-----------------------------------------
+ 
+--CREATE OR ALTER FUNCTION FN_EMP_BONUS(@SAL DECIMAL(10,2))
+--RETURNS DECIMAL(10,2)
+--AS
+--BEGIN
+--DECLARE @BONUS DECIMAL(10,2)
+--SELECT @BONUS=(SALARY*0.10)FROM EMPLOYEE WHERE SALARY=@SAL
+--RETURN @BONUS
+--END
+ 
+--SELECT EMP_NAME,salary,DBO.FN_EMP_BONUS(SALARY)AS BONUS FROM EMPLOYEE
+
+-------------------------------------------
+--CREATE OR ALTER FUNCTION CalculateBonus
+--(
+--    @Salary DECIMAL(10, 2)
+--)
+--RETURNS DECIMAL(10, 2)
+--AS
+--BEGIN
+--    RETURN @Salary * 0.10;
+--END;
+
+--SELECT Emp_ID, EMP_Name, DEP_ID, Salary, dbo.CalculateBonus(Salary) AS Bonus
+--FROM Employee;
+
+
+ -------------------------------------------- FUNCTION QUESTION -----------------------------------------------------------------
+				--Write a scalar function that takes a salary and returns the tax amount based on the following rules:
+				
+				--If salary < 2,50,000 → tax = 0
+				--If salary between 2,50,000 and 5,00,000 → tax = 5%
+				--If salary between 5,00,000 and 10,00,000 → tax = 20%
+				--If salary > 10,00,000 → tax = 30%
+
+--CREATE OR ALTER FUNCTION Fn_CalSalTaxAmount
+--(
+--@salary decimal(19,8)
+--)
+--RETURNS DECIMAL(19,8)
+--AS
+--BEGIN
+--	  DECLARE @TaxAmount decimal(19,8)
+
+--	  IF(@SALARY < 250000.00)
+--	    	  Set @TaxAmount = (@salary*0.00)
+
+--	  ELSE IF(@SALARY BETWEEN 250000.00 AND 500000.00)
+--	    	  Set @TaxAmount = (@salary*0.05)
+
+--	  ELSE IF(@SALARY BETWEEN 500000.01 AND 1000000.00)
+--	          Set @TaxAmount = (@salary*0.20)
+--	  ELSE
+--		  SET @TaxAmount = @salary*0.30
+
+--	RETURN @TaxAmount
+--END;
+
+--SELECT dbo.Fn_CalSalTaxAmount(500000.00)
+
+ 
+---------------------------------------------- CALCULATE AGE BASED ON THE DOB --------------------------------------------
+ 
+-- CREATE or alter FUNCTION Fn_calculate_Age ( @DOB date)
+--RETURNS INT
+--AS 
+--BEGIN 
+--     DECLARE @AGE INT 
+
+--	  SET @AGE = DATEDIFF(year, @DOB, GETDATE())
+	  
+--			IF DATEADD(YEAR, @Age, @DOB) > GETDATE()     
+--			SET @AGE = @AGE - 1
+--			                     --  or 
+--			 --IF (MONTH(GETDATE()) < MONTH(@DOB)) OR 
+--             --(MONTH(GETDATE()) = MONTH(@DOB) AND DAY(GETDATE()) < DAY(@DOB))
+--	                             --  or
+--	        --IF DATEADD(month, abs(month(getdate()) - month(@DOB)),(DATEADD(month, @month, @DOB))) > month(GETDATE())
+--			--SET @AGE = @AGE - 1
+
+--	  RETURN @AGE
+
+--END;
+
+--SELECT dbo.Fn_calculate_Age('2000/11/15') --input
+
+--SELECT DATEDIFF(month, '2000/12/15', GETDATE());
+
+--select DATEADD(month, 298, '2000-11-15') --+ month(+ 1) 
+ 
+--select DATEADD(month, abs(month(getdate()) - month('2000/11/15')),(DATEADD(month, 299, '2000-11-15')))
+ 
+--SELECT DATEADD(YEAR, 25,'2000/11/15') 
+
+--select abs(month(getdate()) - month('2000/10/15'))
+
+
+
 
 --	----------------------------------------16/10/2025 ---------------------------------------------------------
 	
@@ -634,10 +935,6 @@
 --	 from substringCustomersemailid
 --	 group by SUBSTRING('Email',  CHARINDEX('@','Email' )+1, len('Email') - CHARINDEX('@','Email'))
 
-
-
-
-	 
 --	 select * from substringCustomersemailid
 
 
@@ -668,14 +965,8 @@
 
 
 
-
-
-
-
-
-
---	---------------------------------- 18/10/2025 ---------------------------------------------------  
-----
+------------------------------------- 18/10/2025 ---------------------------------------------------  
+----login page backend code 
 ----CREATE TABLE LOGIN_Pw_DATA
 ----(
 ----  PW_ID INT IDENTITY(1,1) NOT NULL,
@@ -818,143 +1109,6 @@
 
 
 
-                                      ---------------- FUNCTIONS -----------------
-----------------------------------------------------scalar function ----------------------------------------------------------------
-
--- --CREATE FUNCTION FN_Demo_1 
--- --Returns int
--- --AS
--- --BEGIN
-
--- --END;
-
--- CREATE or alter FUNCTION CalculateAge(@DOB Date) 
--- Returns int
--- AS
--- BEGIN
---		declare @age int
---		set @age = DATEDIFF(year, @DOB, GETDATE()) -
---		    CASE
---				 WHEN	
---				 (MONTH(@DOB) > MONTH(GETDATE())) OR 
---						 (MONTH(@DOB) = MONTH(GETDATE()) AND DAY(@DOB) > DAY(GETDATE()))
---			     THEN 1 ELSE 0
---		    END
---		RETURN @AGE
--- END;
-
--- SELECT DBO.CalculateAge('2024-01-21') AS Age   select DATEDIFF(year, '2025-10-22', GETDATE())
-
---						   2024-01-21 - 2025-10-22
-						   
-						   
---						--SELECT CONVERT(VARCHAR(8), GETDATE(),108)'hh:mi:ss' 
-
-
---select * from programmer
-
---delete p1 from programmer p1, programmer p2 where p1.doj = p2.doj and p1.name > p2.name -- this one is removing duilpcate records
-
-
----------------------------------FUNCTION TO CAL YEARLY BONUS (10% OF SALARY)-----------------------------------------
- 
-CREATE OR ALTER FUNCTION FN_EMP_BONUS(@SAL DECIMAL(10,2))
-RETURNS DECIMAL(10,2)
-AS
-BEGIN
-DECLARE @BONUS DECIMAL(10,2)
-SELECT @BONUS=(SALARY*0.10)FROM EMPLOYEE WHERE SALARY=@SAL
-RETURN @BONUS
-END
- 
-SELECT EMP_NAME,salary,DBO.FN_EMP_BONUS(SALARY)AS BONUS FROM EMPLOYEE
-
--------------------------------------------
-CREATE OR ALTER FUNCTION CalculateBonus
-(
-    @Salary DECIMAL(10, 2)
-)
-RETURNS DECIMAL(10, 2)
-AS
-BEGIN
-    RETURN @Salary * 0.10;
-END;
-
-SELECT Emp_ID, EMP_Name, DEP_ID, Salary, dbo.CalculateBonus(Salary) AS Bonus
-FROM Employee;
-
-
-         -------------------------------------------- FUNCTION QUESTION -----------------------------------------------------------------
-				--Write a scalar function that takes a salary and returns the tax amount based on the following rules:
-				
-				--If salary < 2,50,000 → tax = 0
-				--If salary between 2,50,000 and 5,00,000 → tax = 5%
-				--If salary between 5,00,000 and 10,00,000 → tax = 20%
-				--If salary > 10,00,000 → tax = 30%
-
---CREATE OR ALTER FUNCTION Fn_CalSalTaxAmount
---(
---@salary decimal(19,8)
---)
---RETURNS DECIMAL(19,8)
---AS
---BEGIN
---	  DECLARE @TaxAmount decimal(19,8)
-
---	  IF(@SALARY < 250000.00)
---	    	  Set @TaxAmount = (@salary*0.00)
-
---	  ELSE IF(@SALARY BETWEEN 250000.00 AND 500000.00)
---	    	  Set @TaxAmount = (@salary*0.05)
-
---	  ELSE IF(@SALARY BETWEEN 500000.01 AND 1000000.00)
---	          Set @TaxAmount = (@salary*0.20)
---	  ELSE
---		  SET @TaxAmount = @salary*0.30
-
---	RETURN @TaxAmount
---END;
-
---SELECT dbo.Fn_CalSalTaxAmount(500000.00)
-
- 
- ---------------------------------------------- CALCULATE AGE BASED ON THE DOB --------------------------------------------
-
- 
--- CREATE or alter FUNCTION Fn_calculate_Age ( @DOB date)
---RETURNS INT
---AS 
---BEGIN 
---     DECLARE @AGE INT 
-
---	  SET @AGE = DATEDIFF(year, @DOB, GETDATE())
-	  
---			IF DATEADD(YEAR, @Age, @DOB) > GETDATE()     
---			SET @AGE = @AGE - 1
---			                     --  or 
---			 --IF (MONTH(GETDATE()) < MONTH(@DOB)) OR 
---             --(MONTH(GETDATE()) = MONTH(@DOB) AND DAY(GETDATE()) < DAY(@DOB))
---	                             --  or
---	        --IF DATEADD(month, abs(month(getdate()) - month(@DOB)),(DATEADD(month, @month, @DOB))) > month(GETDATE())
---			--SET @AGE = @AGE - 1
-
---	  RETURN @AGE
-
---END;
-
---SELECT dbo.Fn_calculate_Age('2000/11/15') --input
-
---SELECT DATEDIFF(month, '2000/12/15', GETDATE());
-
---select DATEADD(month, 298, '2000-11-15') --+ month(+ 1) 
- 
---select DATEADD(month, abs(month(getdate()) - month('2000/11/15')),(DATEADD(month, 299, '2000-11-15')))
- 
---SELECT DATEADD(YEAR, 25,'2000/11/15') 
-
---select abs(month(getdate()) - month('2000/10/15'))
-
-
 
 ---------------------------------------------------- INDEX, NON ----------------------------------------
 CREATE INDEX INDEX1
@@ -997,7 +1151,7 @@ ON Aadhar_Details (Aadhar_Number)
 --SELECT * FROM DEPARTMENT
  
  
---INSERT INTO EMPLOYEE (EMP_NAME,DEP_ID,SALARY,DOJ) VALUES('JOHN',1,50000,'2022-01-10'),
+--INSERT INTO EMPLOYEE (EMP_NAME,DEP_ID,SALARY,DOJ) VALUES(' ',1,58000,'2022-01-10'),
 --														('SARA',1,60000,'2021-03-12'),
 --														('DAVID',2,40000,'2020-05-20'),
 --														('EMMA',3,70000,'2023-07-15')
@@ -1102,40 +1256,9 @@ SELECT*FROM PERFORMANCE
       
 
 --						   01 
-
-
-
 -- SELECT DBO.CalculateAge(CAST('20-09-2024' AS DATE)) AS age;
 
 -- ------------------------------------------------------------------------------------------------
-
-
---------------------------------- sharvan
- 
-Create or ALTER   PROCEDURE [dbo].[CalculateTax_SP]
-    @SaleID INT	
-AS
-BEGIN
-   DECLARE  @Amount DECIMAL(10,2),
-            @TaxRate DECIMAL(5,2),
-            @TaxAmount DECIMAL(10,2),
-            @TotalAmount DECIMAL(10,2)
-
-    -- Get the amount and tax rate for the sale
-    SELECT @Amount = Amount, @TaxRate = TaxRate
-    FROM Sales
-    WHERE SaleSID = @SaleID;
-
-    -- Calculate tax and total
-    SET @TaxAmount = ((@Amount * @TaxRate) / 100);
-    SET @TotalAmount = @Amount + @TaxAmount;
-    -- Update the table
-
-    UPDATE Sales
-    SET TaxAmount = @TaxAmount,
-        TotalAmount = @TotalAmount
-    WHERE SaleSID = @SaleID;
-END
 
  
 
@@ -1183,9 +1306,7 @@ END
 
 	   ----------------------------------- ITS REMOVE TEMP TABLE WHEN REACH 15 RECORDS AUTOMATICALLY DELETE OLD RECORDS----------------------------------
 
-	   -- Step 1: Create the temp table (if not exists)
-
-	   
+-- Step 1: Create the temp table (if not exists)
 
   IF OBJECT_ID('tempdb..#TEMP') IS NOT NULL
     DROP TABLE #TEMP;
@@ -1232,14 +1353,14 @@ END;
 SELECT * FROM #TEMP ORDER BY ID DESC;
 
 
-	                         select * from #TEMP
-	                         drop table #temp
+	      select * from #TEMP
+	      --drop table #temp
 
-                              SELECT*FROM EMPLOYEE
-                              SELECT*FROM PERFORMANCE
-	                          select * from DEPARTMENT
+           SELECT*FROM EMPLOYEE
+           SELECT*FROM PERFORMANCE
+	       select * from DEPARTMENT
 
-
+--------------------------------------------------------------------------------------------------------------
 
 -- 1. PAN Details Table
 CREATE TABLE PAN_Details (
@@ -1391,28 +1512,22 @@ select * from Aadhar_Details
 select * from Bank_Details
 select * from PAN_Details
 
-
+--this is for create existing table stucture
 SELECT Bank_ID into Aadhar_details from Bank_Details where 1 = 0;
 
 alter table Aadhar_details add Bank_ID nvarchar(12) null
 
-
+--insert records one table some another copy of the table
 insert into Aadhar_details (Aadhar_Number,User_Name,DOB,Gender,Mobile_Number)
 select Aadhar_Number,User_Name,DOB,Gender,Mobile_Number 
 from Aadhar_details1
-
 
 UPDATE a
 SET a.Bank_ID = b.bank_id
 from Bank_Details B JOIN Aadhar_details A ON A.USER_NAME = B.User_Name
 
-alter table Aadhar_details add foreign key references 
-
-
-alter table Aadhar_details add column Aadhar_number
-
 --------------------------------------------------------------- #Temp ------------------------------------------------------------------------
-
+--top 3 employees based on performance rating.
 Select top 3 e.EMP_ID, e.EMP_NAME, e.DEP_ID, p.RATING into #temp1 
 from EMPLOYEE e 
 join PERFORMANCE p 
@@ -1429,8 +1544,8 @@ e.EMP_NAME,
 DEP_ID,
 SALARY,
 STATUS into #TopPerformers from EMPLOYEE e join PERFORMANCE p on e.EMP_ID = p.EMP_ID order by RATING desc
-
 select * from #TopPerformers
+
 --Store the average salary per department in a temp table.
 select dep_name, 
 avg(SALARY) AS AVG_SALARY 
@@ -1438,25 +1553,24 @@ into #AvgSalDept
 from DEPARTMENT d join EMPLOYEE e 
 on d.DEP_ID = e.DEP_ID 
 group by DEP_NAME 
-
 SELECT * FROM #AvgSalDept
+
 --Create a temp table with employees who joined in the last 12 months.
 SELECT * INTO #EMPLOYEE FROM EMPLOYEE WHERE DOJ >= DATEADD(MONTH, -50, GETDATE())
 
 --Create a temp table that joins EMPLOYEE and DEPARTMENT to show employee name, department name, and salary.
 SELECT E.EMP_NAME,D.DEP_NAME,SALARY INTO #EmpWithDept FROM EMPLOYEE E JOIN DEPARTMENT D ON E.DEP_ID = D.DEP_ID
-
 select * from #EmpWithDept
+
 --Create a temp table with employees earning more than ₹60,000.
 select * into #temp from EMPLOYEE where salary > 60000
-
 select * from #temp
 
+--Top Performer per Department
+--Create a temp table that stores the highest-rated employee from each department. 
 select distinct(d.DEP_NAME), RATING from PERFORMANCE p join EMPLOYEE e on e.EMP_ID = p.EMP_ID join DEPARTMENT d on e.DEP_ID = d.DEP_ID group by DEP_NAME, RATING order by RATING desc
 
 
---Top Performer per Department
---Create a temp table that stores the highest-rated employee from each department.
 
 
 --Inactive Employees
