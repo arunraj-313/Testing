@@ -823,18 +823,41 @@ Begin
 				return @grade
 end;
 
- SELECT e.EMP_ID, e.EMP_NAME, DBO.FN_GetEmpGradeByrating(p.rating) FROM EMPLOYEE e  join PERFORMANCE p on e.EMP_ID = p.EMP_ID
+ SELECT e.EMP_ID, e.EMP_NAME, rating, DBO.FN_GetEmpGradeByrating(p.rating) FROM EMPLOYEE e  join PERFORMANCE p on e.EMP_ID = p.EMP_ID
  
 --_________________________________________________________________________________________________________
 
 --Create a function that returns whether an employee is eligible for promotion (e.g., rating ≥ 4 and salary < 60000).
 
+create function FN_EmpWhoEligibleForPromotion 
+(
+   @rating int,
+   @salary decimal(10,2)
+)
+Returns Nvarchar(20)
+As
+begin
+     declare @status nvarchar(20)
 
-SELECT * FROM EMPLOYEE
-SELECT * FROM PERFORMANCE
+	 If (@rating >=4 and @salary <60000)  
+		 set @status = 'Eligible'
+    else 
+	     set @status = 'Not Eligible'
 
+   return @status
+end;
 
+select e.Emp_id, e.Emp_name, 
+dbo.FN_EmpWhoEligibleForPromotion(p.rating, e.salary) as Promotion -- Calling function
+From employee e join performance p 
+ON e.emp_id = p.emp_id
 
+--_________________________________________________________________________________________________________
+
+select * from employee
+select * from performance
+
+--_________________________________________________________________________________________________________
 
 
 
