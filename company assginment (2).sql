@@ -690,35 +690,38 @@ SELECT COLUMN_NAME, DATA_TYPE, CHARACTER_MAXIMUM_LENGTH
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_NAME = 'PAN_Details';
 
-"Write a stored procedure that calculates a bonus for an employee based on their salary. The procedure should:
+--"Write a stored procedure that calculates a bonus for an employee based on their salary. The procedure should:
 
-Take EMP_ID as input.
-Fetch the employee's SALARY from the EMPLOYEE table.
-Apply a fixed bonus rate (e.g., 10%) to calculate the BonusAmount.
-Return the employee name, salary, and calculated bonus."
-
-
-create OR ALTER proc CalEmpBonus_SP @IEMP_ID INT, @I_INCREMENT DECIMAL(10,2), @OEMP_NAME NVARCHAR(40) OUT, @OSALARY DECIMAL(10,2) OUT , @OBONUS DECIMAL(10,2) OUT
-AS
-BEGIN
-	 SELECT @OEMP_NAME = EMP_NAME, @OSALARY = SALARY, @OBONUS = (SALARY * @I_INCREMENT) FROM EMPLOYEE WHERE EMP_ID = @IEMP_ID
-
-END;
-
-DECLARE @DEMP_NAME NVARCHAR(40), @DSALARY DECIMAL(10,2), @DBONUS DECIMAL(10,2) 
-EXEC CalEmpBonus_SP @IEMP_ID = 1, @I_INCREMENT = 1.20,
-@OEMP_NAME = @DEMP_NAME OUT, 
-@OSALARY = @DSALARY OUT, 
-@OBONUS = @DBONUS OUT
-SELECT @DEMP_NAME, @DSALARY, @DBONUS
+--Take EMP_ID as input.
+--Fetch the employee's SALARY from the EMPLOYEE table.
+--Apply a fixed bonus rate (e.g., 10%) to calculate the BonusAmount.
+--Return the employee name, salary, and calculated bonus."
 
 
-SELECT 10000 *1.10
+--create OR ALTER proc CalEmpBonus_SP @IEMP_ID INT, @I_INCREMENT DECIMAL(10,2), @OEMP_NAME NVARCHAR(40) OUT, @OSALARY DECIMAL(10,2) OUT , @OBONUS DECIMAL(10,2) OUT
+--AS
+--BEGIN
+--	 SELECT @OEMP_NAME = EMP_NAME, @OSALARY = SALARY, @OBONUS = (SALARY * @I_INCREMENT) FROM EMPLOYEE WHERE EMP_ID = @IEMP_ID
+
+--END;
+
+--DECLARE @DEMP_NAME NVARCHAR(40), @DSALARY DECIMAL(10,2), @DBONUS DECIMAL(10,2) 
+--EXEC CalEmpBonus_SP @IEMP_ID = 1, @I_INCREMENT = 1.20,
+--@OEMP_NAME = @DEMP_NAME OUT, 
+--@OSALARY = @DSALARY OUT, 
+--@OBONUS = @DBONUS OUT
+--SELECT @DEMP_NAME, @DSALARY, @DBONUS
+
+
+--SELECT 10000 *1.10
 
 --__________________________________________________________________________________________________________________________________________________________________________
 
 
-                                               ---------------- FUNCTIONS -----------------
+
+
+
+	                                /*________________ */ FUNCTION-S /*____________________*/
 -------------------------------------------------------------scalar function ----------------------------------------------------------------
 --------------A Scalar Function is a user-defined function that returns a single value (not a table). You can use it in SELECT, WHERE, ORDER BY, etc.
 
@@ -732,67 +735,67 @@ SELECT 10000 *1.10
 _________________________________________________________________________________________________________
 
 
-	CREATE FUNCTION GetBounsAmount(@salary decimal(10,2), @Rate decimal(10,2))
-	RETURNS DECIMAL(10,2)
-	AS 
-	BEGIN
-	     RETURN (@salary * @Rate)
-	END;
+--	CREATE FUNCTION GetBounsAmount(@salary decimal(10,2), @Rate decimal(10,2))
+--	RETURNS DECIMAL(10,2)
+--	AS 
+--	BEGIN
+--	     RETURN (@salary * @Rate)
+--	END;
 
-/*exec function */   
-	SELECT EMP_NAME,salary, dbo.GetBounsAmount(salary, 0.10) as Bonus from employee;
+--/*exec function */   
+--	SELECT EMP_NAME,salary, dbo.GetBounsAmount(salary, 0.10) as Bonus from employee;
 
---_________________________________________________________________________________________________________
-      --Create a function that returns 10% bonus of a given salary.
+----_________________________________________________________________________________________________________
+--      --Create a function that returns 10% bonus of a given salary.
 
 
-  CREATE or alter FUNCTION FN_Get10PctBonus_1
-  (
-  @salary decimal(10,2)
-  )
-  returns decimal(10,2)
-  AS
-  BEGIN 
-		declare @bouns decimal(10,2)
-		set @bouns = (@salary * 0.10)
-        return @bouns
-  end
+--  CREATE or alter FUNCTION FN_Get10PctBonus_1
+--  (
+--  @salary decimal(10,2)
+--  )
+--  returns decimal(10,2)
+--  AS
+--  BEGIN 
+--		declare @bouns decimal(10,2)
+--		set @bouns = (@salary * 0.10)
+--        return @bouns
+--  end
       
- select 
- EMP_ID,
-EMP_NAME,
-SALARY, dbo.FN_Get10PctBonus_1(salary) as bouns from EMPLOYEE
+-- select 
+-- EMP_ID,
+--EMP_NAME,
+--SALARY, dbo.FN_Get10PctBonus_1(salary) as bouns from EMPLOYEE
 
---_________________________________________________________________________________________________________
+----_________________________________________________________________________________________________________
 
---Create a function that returns full name (first + last) from two input strings.
+----Create a function that returns full name (first + last) from two input strings.
 
-  CREATE or alter FUNCTION FN_GetFullName2
-  (
-     @firstName nvarchar(20),
-	 @lastName Nvarchar(20)
-  )
-  returns nvarchar(40)
-  AS
-  BEGIN
-       return (@firstName +' '+ @lastName);
-  END;
+--  CREATE or alter FUNCTION FN_GetFullName2
+--  (
+--     @firstName nvarchar(20),
+--	 @lastName Nvarchar(20)
+--  )
+--  returns nvarchar(40)
+--  AS
+--  BEGIN
+--       return (@firstName +' '+ @lastName);
+--  END;
 
-  select emp_id, dbo.FN_GetFullName2(emp_name,'M') as FullName from EMPLOYEE where EMP_ID = 5
---_________________________________________________________________________________________________________
- -- Create a function that returns the number of years an employee has worked (based on DOJ).
+--  select emp_id, dbo.FN_GetFullName2(emp_name,'M') as FullName from EMPLOYEE where EMP_ID = 5
+----_________________________________________________________________________________________________________
+-- -- Create a function that returns the number of years an employee has worked (based on DOJ).
 
-  CREATE FUNCTION FN_GetEmpExperience 
-  (
-	@DOJ DATE
-  )
-  RETURNS INT
-  AS 
-  BEGIN
-	    RETURN DATEDIFF(YEAR, @DOJ, GETDATE())
-  END;
+--  CREATE FUNCTION FN_GetEmpExperience 
+--  (
+--	@DOJ DATE
+--  )
+--  RETURNS INT
+--  AS 
+--  BEGIN
+--	    RETURN DATEDIFF(YEAR, @DOJ, GETDATE())
+--  END;
 
-  SELECT EMP_ID, EMP_NAME, DBO.FN_GetEmpExperience(DOJ) FROM EMPLOYEE
+--  SELECT EMP_ID, EMP_NAME, DBO.FN_GetEmpExperience(DOJ) FROM EMPLOYEE
 --_________________________________________________________________________________________________________
 
 --Create a function that returns a performance grade based on rating:
@@ -804,83 +807,178 @@ SALARY, dbo.FN_Get10PctBonus_1(salary) as bouns from EMPLOYEE
 --1 → 'Poor'
 
 
-CREATE or alter function FN_GetEmpGradeByrating  
-(
-@rating int
-)
-Returns nvarchar(20)
-as 
-Begin
-    declare @grade nvarchar(20)
-	set @grade = case 
-					@rating when 5 then'Excellent'
-							when 4 then 'Good'
-						   	when 3 then 'Average'
-						   	when 2 then 'Below Average'
-						   	when 1 then 'Poor'
-							else 'invalid rating'
-				end
-				return @grade
-end;
+--CREATE or alter function FN_GetEmpGradeByrating  
+--(
+--@rating int
+--)
+--Returns nvarchar(20)
+--as 
+--Begin
+--    declare @grade nvarchar(20)
+--	set @grade = case 
+--					@rating when 5 then'Excellent'
+--							when 4 then 'Good'
+--						   	when 3 then 'Average'
+--						   	when 2 then 'Below Average'
+--						   	when 1 then 'Poor'
+--							else 'invalid rating'
+--				end
+--				return @grade
+--end;
 
- SELECT e.EMP_ID, e.EMP_NAME, rating, DBO.FN_GetEmpGradeByrating(p.rating) FROM EMPLOYEE e  join PERFORMANCE p on e.EMP_ID = p.EMP_ID
+-- SELECT e.EMP_ID, e.EMP_NAME, rating, DBO.FN_GetEmpGradeByrating(p.rating) FROM EMPLOYEE e  join PERFORMANCE p on e.EMP_ID = p.EMP_ID
  
 --_________________________________________________________________________________________________________
 
 --Create a function that returns whether an employee is eligible for promotion (e.g., rating ≥ 4 and salary < 60000).
 
-create function FN_EmpWhoEligibleForPromotion 
-(
-   @rating int,
-   @salary decimal(10,2)
-)
-Returns Nvarchar(20)
-As
-begin
-     declare @status nvarchar(20)
+--create function FN_EmpWhoEligibleForPromotion 
+--(
+--   @rating int,
+--   @salary decimal(10,2)
+--)
+--Returns Nvarchar(20)
+--As
+--begin
+--     declare @status nvarchar(20)
 
-	 If (@rating >=4 and @salary <60000)  
-		 set @status = 'Eligible'
-    else 
-	     set @status = 'Not Eligible'
+--	 If (@rating >=4 and @salary <60000)  
+--		 set @status = 'Eligible'
+--    else 
+--	     set @status = 'Not Eligible'
 
-   return @status
-end;
+--   return @status
+--end;
 
-select e.Emp_id, e.Emp_name, 
-dbo.FN_EmpWhoEligibleForPromotion(p.rating, e.salary) as Promotion -- Calling function
-From employee e join performance p 
-ON e.emp_id = p.emp_id
-
---_________________________________________________________________________________________________________
-
-select * from employee
-select * from performance
+--select e.Emp_id, e.Emp_name, 
+--dbo.FN_EmpWhoEligibleForPromotion(p.rating, e.salary) as Promotion -- Calling function
+--From employee e join performance p 
+--ON e.emp_id = p.emp_id
 
 --_________________________________________________________________________________________________________
 
+--select * from employee
+--select * from performance
+
+--_________________________________________________________________________________________________________
+
+--CREATE or alter FUNCTION FN_PerformanceByRating
+--(
+--   @rating nvarchar(20)
+--)
+--returns nvarchar(20)
+--as
+--begin 
+--    declare @DGrade nvarchar(20)
+--	set @DGrade = case  
+--	 				when   @rating >= 190 then 'Excellent'
+--				    when   @rating >= 175 then 'Good'
+--					when   @rating >= 150 then 'Average'
+--					when   @rating >= 120 then 'Below Average'
+--					when   @rating <= 100 then 'Poor'
+--					else 'fail'
+--				 end
+--   return @DGrade
+--End;
+
+--select *, dbo.FN_CalStudentsMark(marks,mark2) as Total, dbo.FN_PerformanceByRating(dbo.FN_CalStudentsMark(marks,mark2)) as Grade  from Students
 
 
 
+--CREATE or alter FUNCTION FN_CalStudentsMark
+--(
+--   @mark int,
+--   @mark2 int
+--)
+--returns int
+--as
+--begin 
+--    declare @DTotal nvarchar(20)
+--	set @DTotal = (@mark+@mark2)
+
+--   return @DTotal
+--End;
 
 
+--select dbo.FN_calStudentsMark(25,25)
+
+--_________________________________________________________________________________________________________
+
+--  Create a function that returns formatted employee info like: 'John - IT - ₹50000'.
+    
+--	Create or alter function FN_ReturnConcatVAlue 
+--	(
+--	  @Iname nvarchar(25),
+--	  @Idept nvarchar(20),
+--	  @Isalary decimal(10,2)
+--	)
+--	Returns nvarchar(50)
+--	AS
+--	begin
+--		 return @Iname+ ' - ' + @Idept + ' - ₹'+ convert(nvarchar(20),@Isalary)
+--	end;
 
 
+--select dbo.FN_ReturnConcatVAlue('Arunraj M', 'Software Engineer', 15000)
+--_________________________________________________________________________________________________________
 
 
+-- Create a function that calculates tax on salary based on slabs:
 
+-- <₹50,000 → 5%
+-- ₹50,000–₹70,000 → 10%
+-- ₹70,000 → 15%
 
+--CREATE FUNCTION FN_CalTaxAmountForSalary
+--    (
+--	  @salary decimal(10,2)
+--	)
+--	RETURNS DECIMAL(10,2)
+--AS
+--BEGIN
+--        Declare @DtaxAmount decimal(10,2)
 
+--	     IF(@salary < 50000)
+--             set @DtaxAmount = @salary * 0.05
+--     else IF(@salary BETWEEN 50000 AND 70000)
+--             set @DtaxAmount =  @salary * 0.10
+--     else IF(@salary > 70000)
+--             set @DtaxAmount  = @salary * 0.15
 
+--	return @DtaxAmount
 
+--END;
 
+--select *, dbo.FN_CalTaxAmountForSalary(salary) as TaxAmount from EMPLOYEE
+--_________________________________________________________________________________________________________
 
+-- Create a function that returns the age of a person based on DOB (if you use Aadhar table).
 
+	--CREATE OR ALTER FUNCTION FN_GetAgeByDOJ 
+	--(
+	--   @dateofbirth date
+	--)
+	--returns int
+	--AS BEGIN
 
+ --        DECLARE @AGE INT 
+	--	 SET @AGE = DATEDIFF(year, @dateofbirth, GETDATE())
 
+	--        IF DATEADD(YEAR, @Age, @dateofbirth) > GETDATE()     
+	--		SET @AGE = @AGE - 1
 
+	--	 RETURN @AGE
+	   
+	--END;
 
+	--SELECT DBO.FN_GetAgeByDOJ('2000-11-04')
 
+	--SELECT DATEADD(YEAR, -25, '03-11-2025') 02-11-2025
+	--	SELECT DATEDIFF(YEAR, '02-11-2000', '03-11-2025')
+
+-- Create a function that returns the last performance rating of an employee (if multiple ratings exist).
+
+                                    PENDING
 
 
 -- CREATE or alter FUNCTION CalculateAge(@DOB Date) 
@@ -1009,6 +1107,128 @@ select * from performance
 --select abs(month(getdate()) - month('2000/10/15'))
 
 
+
+_____________________________________________________________ TABLE VALUE FUNCTION ____________________________________________________________________
+                                         ------------------- Inline Value Function---------------
+CREATE or alter FUNCTION FN_GetStatusDetails
+Returns Table 
+as
+    return (select StudentID,FirstName+' '+LastName as FullName,Class,DateOfBirth,Gender,Marks+mark2 as Total, dbo.FN_PerformanceByRating(Marks+mark2) from Students  
+
+select * from dbo.FN_GetStatusDetails()
+
+select * from Students 
+----_________________________________________________________________________________________________________
+
+CREATE or alter FUNCTION FN_GetTopStudents(@mark int)
+RETURNS TABLE
+AS 
+RETURN( SELECT * FROM STUDENTS WHERE Marks > @mark and mark2>@mark)
+
+SELECT * FROM FN_GetTopStudents(85)
+
+----_________________________________________________________________________________________________________
+
+CREATE or alter FUNCTION FN_PerformanceByRating
+(
+   @rating nvarchar(20)
+)
+returns nvarchar(20)
+as
+begin 
+    declare @DGrade nvarchar(20)
+	set @DGrade = case  
+					when   @rating >= 90 then 'Excellent'
+				    when   @rating >= 85 then 'Good'
+					when   @rating >= 65 then 'Average'
+					when   @rating >= 50 then 'Below Average'
+					when   @rating >= 35 then 'Poor'
+					else 'fail'
+				 end
+   return @DGrade
+End;
+
+--Create a function that returns all employees who joined after 2020 and have status 'ACTIVE'.
+
+	CREATE or alter FUNCTION FNGetEmpStatus (@status nvarchar(20), @YEAR INT)
+	RETURNS TABLe AS
+	       RETURN (SELECT * FROM EMPLOYEE WHERE YEAR(DOJ) > @YEAR AND [STATUS] = @status)
+
+     SELECT * FROM dbo.FNGetEmpStatus('active', 2020)   
+	 select * from performance
+
+--scalar
+--Q3: Create a function that returns the latest rating of an employee based on their EMP_ID.
+
+----Q4: Write a query to get employee name, department name, and latest performance rating.
+--Q5: Create a function that returns the average rating of an employee across all months.
+
+
+	 
+	 	                      /*________________ */ Multi-Statement Table Valued Function /*____________________*/
+-------------------------------------------------------------------------------------------------------------------------------------------
+				
+----Create a function that returns students with performance categories based on marks:
+
+CREATE OR ALTER FUNCTION dbo.GetStudentPerformance()
+RETURNS @Result TABLE (
+    StudentID INT,
+    FullName NVARCHAR(100),
+    Marks INT,
+    Performance NVARCHAR(20)
+)
+AS
+BEGIN
+    INSERT INTO @Result
+    SELECT 
+        StudentID,
+        FirstName + ' ' + LastName AS FullName,
+        Marks,
+        CASE 
+            WHEN Marks >= 90 THEN 'Excellent'
+            WHEN Marks >= 75 THEN 'Good'
+            WHEN Marks >= 50 THEN 'Average'
+            ELSE 'Poor'
+        END AS Performance
+    FROM Students;
+
+    RETURN;
+END;
+
+select * from GetStudentPerformance()
+----_________________________________________________________________________________________________________
+
+--Q2: Create a function that returns employees along with their performance category:	
+       --Rating = 5 → 'Outstanding'
+       --Rating = 4 → 'Excellent'
+       --Rating = 3 → 'Good'
+       --Rating = 2 → 'Average'
+       --Rating = 1 → 'Poor'
+
+
+	CREATE FUNCTION FN_GetEmpPerformance()
+	Returns @Result table (
+	         Emp_id int,
+			 Rating int,
+			 Performance nvarchar(20)
+			 )
+	          
+	as 
+	 begin
+	       insert into @Result 
+		   select emp_id, rating, case
+										when rating = 5 then 'Outstanding'
+										when rating = 4 then 'Excellent'
+										when rating = 3 then 'Good'
+										when rating = 2 then 'Average'
+										when rating = 1 then 'Poor'
+										else 'Null'
+								  end as Performace
+		                      from PERFORMANCE;
+	       return;
+	 end;
+
+--EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
 
 ------------------------------------------------------ TRIGGER ------------------------------------------------------------------
 --use demo;
